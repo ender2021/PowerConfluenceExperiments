@@ -166,11 +166,11 @@ function Format-SqlAgentJobManifestConfluencePage($SchedulePageTitle="", $UserSe
     $infoMacro = $PC_ConfluenceMacros.Info
     $macroParameters = Format-ConfluenceMacroParameters -Parameters @{title=$_sqlAgentJobManifestConfiguration.InfoMacro.Title}
     $link = Format-ConfluencePageLink -TargetPageTitle $SchedulePageTitle -LinkText $_sqlAgentJobManifestConfiguration.InfoMacro.LinkText
-    $macroBody = Format-ConfluenceMacroRichTextBody -Content (Format-ConfluenceHtml -Tag "p" -Contents ($_sqlAgentJobManifestConfiguration.InfoMacro.BodyTemplate -f $link))
+    $macroBody = Format-ConfluenceMacroRichTextBody -Content (New-ConfluenceHtmlTag -Tag "p" -Contents ($_sqlAgentJobManifestConfiguration.InfoMacro.BodyTemplate -f $link)).ToString()
     $pageContents += Format-ConfluenceMacro -Name $infoMacro.Name -SchemaVersion $infoMacro.SchemaVersion -Contents ($macroParameters + $macroBody)
     
     # add the page properties report
-    $pageContents += Format-ConfluenceHtml -Tag "h1" -Contents $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.Title
+    $pageContents += (New-ConfluenceHtmlTag -Tag "h1" -Contents $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.Title).ToString()
     $pageContents += Format-ConfluencePagePropertiesReportMacro -Cql $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.Cql -PageSize $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.PageSize -FirstColumn $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.FirstColumn -Headings $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.Headings -SortBy $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.SortBy
 
     $map = $ContentMap
@@ -227,26 +227,27 @@ function Format-SqlAgentScheduleSummaryConfluencePage($Schedules, $ContentMap=$n
         "Schedule Enabled",
         "Execution Frequency",
         "Execution Time"
-    )    
-    $rows += Format-ConfluenceHtmlTableHeaderRow -Headers $headers
+    )
+    $headerCells = $headers | ForEach-Object { New-ConfluenceHtmlTableCell $_ }  
+    $rows += New-ConfluenceHtmlTableRow -Cells $headerCells -Header
 
     # build out the schedule rows
     foreach ($schedule in $Schedules) {
         $jobNameLink = (Format-ConfluencePageLink -TargetPageTitle $schedule.Parent -LinkText $schedule.Parent)
 
         $cells = @()
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $jobNameLink
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents (Format-ConfluenceIcon -Icon $schedule.JobEnabled) -Center $true
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.Name
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents (Format-ConfluenceIcon -Icon $schedule.IsEnabled) -Center $true
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.FrequencyTranslation
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.StartTimeTranslation
-        $rows += Format-ConfluenceHtmlTableRow -Cells $cells
+        $cells += New-ConfluenceHtmlTableCell -Contents $jobNameLink
+        $cells += New-ConfluenceHtmlTableCell -Contents (Format-ConfluenceIcon -Icon $schedule.JobEnabled) -Center $true
+        $cells += New-ConfluenceHtmlTableCell -Contents $schedule.Name
+        $cells += New-ConfluenceHtmlTableCell -Contents (Format-ConfluenceIcon -Icon $schedule.IsEnabled) -Center $true
+        $cells += New-ConfluenceHtmlTableCell -Contents $schedule.FrequencyTranslation
+        $cells += New-ConfluenceHtmlTableCell -Contents $schedule.StartTimeTranslation
+        $rows += New-ConfluenceHtmlTableRow -Cells $cells
     }
     
     # pull it all together
-    $title = Format-ConfluenceHtml -Tag "h1" -Contents "SQL Agent Job Schedule Summary"    
-    $table = Format-ConfluenceHtmlTable -Rows $rows
+    $title = (New-ConfluenceHtmlTag -Tag "h1" -Contents "SQL Agent Job Schedule Summary").ToString()
+    $table = (New-ConfluenceHtmlTable -Rows $rows).ToString()
 
     $pageContent = $title + $table
 
@@ -306,7 +307,7 @@ function Format-SqlAgentJobConfluencePageProperties($SqlAgentJob) {
         @{Created = Format-ConfluenceDate($SqlAgentJob.DateCreated)},
         @{"Last Modified" = Format-ConfluenceDate($SqlAgentJob.DateLastModified)}
     )
-    (Format-ConfluenceHtml -Tag "h1" -Contents "Properties") + (Format-ConfluencePagePropertiesMacro -Properties $properties)
+    (New-ConfluenceHtmlTag -Tag "h1" -Contents "Properties").ToString() + (Format-ConfluencePagePropertiesMacro -Properties $properties)
 }
 
 function Format-SqlAgentJobConfluencePageSchedules($SqlAgentJob) {
@@ -321,24 +322,25 @@ function Format-SqlAgentJobConfluencePageSchedules($SqlAgentJob) {
         "Activation Date",
         "Date Created"
     )    
-    $rows += Format-ConfluenceHtmlTableHeaderRow -Headers $headers
+    $headerCells = $headers | ForEach-Object { New-ConfluenceHtmlTableCell $_ }  
+    $rows += New-ConfluenceHtmlTableRow -Cells $headerCells -Header
 
     # create the schedule rows
     $schedules = $SqlAgentJob | Get-SqlAgentJobScheduleWithTranslation
     foreach ($schedule in $schedules) {
         $cells = @(
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.Name),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents (Format-ConfluenceIcon -Icon $schedule.IsEnabled)),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.FrequencyTranslation),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $schedule.StartTimeTranslation),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents Format-ConfluenceDate($schedule.ActiveStartDate)),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents Format-ConfluenceDate($schedule.DateCreated))
+            (New-ConfluenceHtmlTableCell -Contents $schedule.Name),
+            (New-ConfluenceHtmlTableCell -Contents (Format-ConfluenceIcon -Icon $schedule.IsEnabled)),
+            (New-ConfluenceHtmlTableCell -Contents $schedule.FrequencyTranslation),
+            (New-ConfluenceHtmlTableCell -Contents $schedule.StartTimeTranslation),
+            (New-ConfluenceHtmlTableCell -Contents Format-ConfluenceDate($schedule.ActiveStartDate)),
+            (New-ConfluenceHtmlTableCell -Contents Format-ConfluenceDate($schedule.DateCreated))
         )
-        $rows += Format-ConfluenceHtmlTableRow -Cells $cells
+        $rows += New-ConfluenceHtmlTableRow -Cells $cells
     }
 
     # return the title and the table
-    (Format-ConfluenceHtml -Tag "h1" -Contents "Schedule(s)") + (Format-ConfluenceHtmlTable -Rows $rows)
+    (New-ConfluenceHtmlTag -Tag "h1" -Contents "Schedule(s)").ToString() + (New-ConfluenceHtmlTable -Rows $rows).ToString()
 }
 
 function Format-SqlAgentJobConfluencePageSteps($SqlAgentJob) {
@@ -354,7 +356,8 @@ function Format-SqlAgentJobConfluencePageSteps($SqlAgentJob) {
         "On Fail",
         "On Success"
     )    
-    $rows += Format-ConfluenceHtmlTableHeaderRow -Headers $headers
+    $headerCells = $headers | ForEach-Object { New-ConfluenceHtmlTableCell $_ }  
+    $rows += New-ConfluenceHtmlTableRow -Cells $headerCells -Header
 
     # create the step rows
     $steps = $SqlAgentJob | Get-SqlAgentJobStep
@@ -368,23 +371,23 @@ function Format-SqlAgentJobConfluencePageSteps($SqlAgentJob) {
         
         # create the cells
         $cells = @(
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $numberContents),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $step.Name),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $step.SubSystem),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents $packagePathArr[2]),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents ($packagePathArr[0] + '\' + $packagePathArr[1])),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents "$failAction"),
-            (New-ConfluenceHtmlTableCell -Type "td" -Contents "$successAction")
+            (New-ConfluenceHtmlTableCell -Contents $numberContents),
+            (New-ConfluenceHtmlTableCell -Contents $step.Name),
+            (New-ConfluenceHtmlTableCell -Contents $step.SubSystem),
+            (New-ConfluenceHtmlTableCell -Contents $packagePathArr[2]),
+            (New-ConfluenceHtmlTableCell -Contents ($packagePathArr[0] + '\' + $packagePathArr[1])),
+            (New-ConfluenceHtmlTableCell -Contents "$failAction"),
+            (New-ConfluenceHtmlTableCell -Contents "$successAction")
         )
 
         # render the row and add it to the list
-        $rows += Format-ConfluenceHtmlTableRow -Cells $cells
+        $rows += New-ConfluenceHtmlTableRow -Cells $cells
     }
 
     # build the return string
-    $header = Format-ConfluenceHtml -Tag "h1" -Contents "Step(s)"
-    $note = Format-ConfluenceHtml -Tag "p" -Contents ((Format-ConfluenceIcon -Icon $PC_ConfluenceEmoticons.StarYellow) + "&nbsp;= First Step")
-    $table = Format-ConfluenceHtmlTable -Rows $rows
+    $header = (New-ConfluenceHtmlTag -Tag "h1" -Contents "Step(s)").ToString()
+    $note = (New-ConfluenceHtmlTag -Tag "p" -Contents ((Format-ConfluenceIcon -Icon $PC_ConfluenceEmoticons.StarYellow) + "&nbsp;= First Step")).ToString()
+    $table = (New-ConfluenceHtmlTable -Rows $rows).ToString()
 
     # return
     "$header$note$table"

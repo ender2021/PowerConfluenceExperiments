@@ -46,7 +46,7 @@ function Format-IntegrationServicesPackageManifestConfluencePage($UserSection = 
     $pageContents = @()
 
     # add the page properties report
-    $pageContents += Format-ConfluenceHtml -Tag "h1" -Contents $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.Title
+    $pageContents += (New-ConfluenceHtmlTag -Tag "h1" -Contents $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.Title).ToString()
     $pageContents += Format-ConfluencePagePropertiesReportMacro -Cql $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.Cql -PageSize $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.PageSize -FirstColumn $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.FirstColumn -Headings $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.Headings -SortBy $_integrationServicesPackageManifestConfiguration.PagePropertiesMacro.SortBy
 
     $map = $ContentMap
@@ -167,7 +167,7 @@ function Format-IntegrationServicesPackageDefaultUserProperties($Title="User Pro
     foreach($name in $propNames) {
         $props += @{"$name"=""}
     }
-    $content = (Format-ConfluenceHtml -Tag "h1" -Contents $Title) + (Format-ConfluencePagePropertiesMacro -Properties $props)
+    $content = (New-ConfluenceHtmlTag -Tag "h1" -Contents $Title).ToString() + (Format-ConfluencePagePropertiesMacro -Properties $props)
     Format-ConfluenceCell -Contents $content
 }
 
@@ -184,7 +184,7 @@ function Format-IntegrationServicesPackagePageProperties($Package,$Title="Packag
     )
 
     # return
-    (Format-ConfluenceHtml -Tag "h1" -Contents $Title) + (Format-ConfluencePagePropertiesMacro -Properties $props)
+    (New-ConfluenceHtmlTag -Tag "h1" -Contents $Title).ToString() + (Format-ConfluencePagePropertiesMacro -Properties $props)
 }
 
 function Get-IntegrationServicesPackageExecutions($Catalog,$FolderName,$ProjectName,$PackageName)
@@ -206,16 +206,16 @@ function Format-IntegrationServicesExecutions ($Executions,[switch]$IncludePacka
     
     # create the header row
     $headers = @()
-    $headers += "ID"
-    if ($IncludePackage) {$headers += "Package"}
-    $headers += "Completed"
-    $headers += "Status"
-    $headers += "Start Time"
-    $headers += "End Time"
-    $headers += "Duration"
+    $headers += New-ConfluenceHtmlTableCell "ID"
+    if ($IncludePackage) {$headers += New-ConfluenceHtmlTableCell "Package"}
+    $headers += New-ConfluenceHtmlTableCell "Completed"
+    $headers += New-ConfluenceHtmlTableCell "Status"
+    $headers += New-ConfluenceHtmlTableCell "Start Time"
+    $headers += New-ConfluenceHtmlTableCell "End Time"
+    $headers += New-ConfluenceHtmlTableCell "Duration"
     #if ($IncludePackage) {$headers += "Project"}
     #if ($IncludePackage) {$headers += "Folder"}
-    $rows += Format-ConfluenceHtmlTableHeaderRow -Headers $headers
+    $rows += New-ConfluenceHtmlTableRow -Cells $headers -Header
 
     # build out the executions rows
     foreach ($e in $Executions) {
@@ -234,21 +234,21 @@ function Format-IntegrationServicesExecutions ($Executions,[switch]$IncludePacka
         }
 
         $cells = @()
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $e.Id
-        if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $e.PackageName}
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents (Format-ConfluenceIcon -Icon $e.Completed) -Center $true
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $statusContent
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $e.StartTime.ToString($_integrationServicesExecutionConfiguration.DateTimeFormat)
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $endTime
-        $cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $duration
-        #if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $e.ProjectName}
-        #if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Type "td" -Contents $e.FolderName}
-        $rows += Format-ConfluenceHtmlTableRow -Cells $cells
+        $cells += New-ConfluenceHtmlTableCell -Contents $e.Id
+        if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Contents $e.PackageName}
+        $cells += New-ConfluenceHtmlTableCell -Contents (Format-ConfluenceIcon -Icon $e.Completed) -Center $true
+        $cells += New-ConfluenceHtmlTableCell -Contents $statusContent
+        $cells += New-ConfluenceHtmlTableCell -Contents $e.StartTime.ToString($_integrationServicesExecutionConfiguration.DateTimeFormat)
+        $cells += New-ConfluenceHtmlTableCell -Contents $endTime
+        $cells += New-ConfluenceHtmlTableCell -Contents $duration
+        #if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Contents $e.ProjectName}
+        #if ($IncludePackage) {$cells += New-ConfluenceHtmlTableCell -Contents $e.FolderName}
+        $rows += New-ConfluenceHtmlTableRow -Cells $cells
     }
     
     # pull it all together
-    $title = Format-ConfluenceHtml -Tag "h1" -Contents "Execution(s)"    
-    $table = Format-ConfluenceHtmlTable -Rows $rows
+    $title = (New-ConfluenceHtmlTag -Tag "h1" -Contents "Execution(s)").ToString()
+    $table = (New-ConfluenceHtmlTable -Rows $rows).ToString()
     
     # return
     $title + $table
