@@ -163,11 +163,9 @@ function Format-SqlAgentJobManifestConfluencePage($SchedulePageTitle="", $UserSe
     $pageContents = @()
 
     # create info macro
-    $infoMacro = $PC_ConfluenceMacros.Info
-    $macroParameters = Format-ConfluenceMacroParameters -Parameters @{title=$_sqlAgentJobManifestConfiguration.InfoMacro.Title}
     $link = Format-ConfluencePageLink -TargetPageTitle $SchedulePageTitle -LinkText $_sqlAgentJobManifestConfiguration.InfoMacro.LinkText
-    $macroBody = Format-ConfluenceMacroRichTextBody -Content (New-ConfluenceHtmlTag -Tag "p" -Contents ($_sqlAgentJobManifestConfiguration.InfoMacro.BodyTemplate -f $link)).ToString()
-    $pageContents += Format-ConfluenceMacro -Name $infoMacro.Name -SchemaVersion $infoMacro.SchemaVersion -Contents ($macroParameters + $macroBody)
+    $macroBody = (New-ConfluenceHtmlTag -Tag "p" -Contents ($_sqlAgentJobManifestConfiguration.InfoMacro.BodyTemplate -f $link)).ToString()
+    $pageContents += Format-ConfluenceMessageBoxMacro -Type (Get-ConfluenceMessageBoxTypes).Info -MessageBody $macroBody -Title $_sqlAgentJobManifestConfiguration.InfoMacro.Title
     
     # add the page properties report
     $pageContents += (New-ConfluenceHtmlTag -Tag "h1" -Contents $_sqlAgentJobManifestConfiguration.PagePropertiesMacro.Title).ToString()
